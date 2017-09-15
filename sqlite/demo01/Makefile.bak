@@ -1,0 +1,6 @@
+TARGET=uandp
+BASE=${TARGET}.c
+TARGET:BASE
+	gcc -o TARGET BASE -lsqlite3
+clean:
+	rm -rf *.o *~ ${TARGET}

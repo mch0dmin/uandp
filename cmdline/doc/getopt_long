@@ -1,0 +1,44 @@
+#include <getopt.h>
+
+int getopt_long(int argc, 
+		char * const argv[],
+		const char *optstring,	//const char *shortopts
+		const struct option *longopts, 
+		int *longindex);
+
+函数中的argc和argv通常直接从main()的两个参数传递而来。
+optsting是选项参数组成的字符串,字符串optstring可以是下列元素:
+(1)	单个字符，表示选项；
+(2)	单个字符后接一个冒号，表示该选项后必须跟一个参数。参数紧跟在选项后或者以空格隔开（一般都是以空格隔开）。该参数的指针赋给optarg（即该参数由optarg返回）。
+(3)	单个字符后跟两个冒号，表示该选项后可以有参数也可以没有参数。如果有参数，参数必须紧跟在选项后不能以空格隔开。该参数的指针赋给optarg （即如果有参数，该参数由optarg返回）。（这个特性是GNU的扩张）。
+
+optstring是一个字符串，表示可以接受的参数 ，例如"ab:c:de"，表示可以接受的参数是a,b,c,d,e，其中，b和c参数后面必须跟参数值， 例如，-b host -c name;
+
+shortopts一般为一个字符串常量，代表所有的短选项，就是一般以"-"开头的选项，如果选项后带参数，则必须在相应的字符后面加":"，如"abc:de:";
+
+参数longopts，其实是一个结构的实例：
+struct option {
+	const char *name;	//name表示的是长参数名
+	int has_arg;	//has_arg有三个值
+					//no_argument | 0，表示该参数后面不跟参数值
+					//required_argument | 1，表示该参数后面一定要跟个参数值
+					//optional_argument | 2，表示该参数后面可以跟也可以不跟参数值
+	int *flag;		//用来决定getopt_long()的返回值是0还是val值。如果flag是NULL(通常情况下),则函数会返回相匹配的val值(val在下面定义)，程序会根据函数的返回值(val)来决定接下来的走向 。如果flag不是NULL，则将val值赋予flag所指向的内存，并且返回值设置为0;
+
+	int val;	//和flag联合决定函数的返回值到底是什么;
+};
+
+参数longindex，表示当前长参数在longopts中的索引值;
+
+例如：
+struct option long_options[] = {
+	{"a123", required_argument, NULL, 'a'},
+	{"c123", no_argument, NULL, 'c'},
+};
+
+如果程序启动时，命令行参数是-a 123，那么调用getopt_long()将返回字符'a'，并且将字符串123由optarg返回(注意:字符串123由optarg返回！optarg不需要定义，在getopt.h中已有定义)，那么如果命令行参数是-c，那么调用getopt_long()将返回字符'c'，而此时optarg是NULL。
+
+最后，当getopt_long()将命令行所有参数全部解析完成后，返回-1;
+
+
+一般的用法为while(getopt_long() != -1){}，可以通过switch语句来对该函数不同的返回值（即不同的短选项）调用不同的处理函数。
